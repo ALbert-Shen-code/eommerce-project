@@ -2,10 +2,8 @@ import react from "react"
 import {Grid} from "@material-ui/core";
 import Product from "./Product/product";
 
-const products = [
-    {id:1, name:'shoe',description:'Running shoes', price:'$5'}
-];
-const Products = () =>{
+
+const Products = ({products}) =>{
     return(
 
     <main>
