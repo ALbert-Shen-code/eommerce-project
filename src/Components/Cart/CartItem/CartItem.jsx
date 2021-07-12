@@ -17,15 +17,15 @@ const CartItem = ({item, handleUpdateQty, removeQty}) => {
                 <Button type="button" size="small" onClick={()=>handleUpdateQty(item.id, item.quantity -1 )}>  -
                 </Button>
                 <Typography>{item.quantity}</Typography>
-                <Button type="button" size="small" onClick={()=>handleUpdateQty(item.id, item.quantity -1 )}>  +
+                <Button type="button" size="small" onClick={()=>handleUpdateQty(item.id, item.quantity  + 1 )}>  +
                 </Button>
                 </div>
 
-                <Button variant="contained" type="buttton" color="secondary">Remove</Button>
+                <Button variant="contained" type="buttton" color="secondary" onClick={()=> removeQty(item.id)}>Remove</Button>
 
             </CardActions>
         </Card>
     )
 }
 
-export default CartItem
+export default CartItem;
