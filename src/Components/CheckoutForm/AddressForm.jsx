@@ -2,7 +2,7 @@ import React, {useState, useEffect}from 'react';
 import {InputLabel, Select, MenuItem, Button, Grid, Typography} from "@material-ui/core";
 import {useForm, FormProvider} from "react-hook-form";
 import CustomTextField from "./CustomTextField";
-
+import {Link} from "react-router-dom"
 import {commerce} from "../../lib/commerce";
 
 const AddressForm = ({checkoutToken}) => {
@@ -16,6 +16,8 @@ const AddressForm = ({checkoutToken}) => {
     const [shippingOption, setShippingOption] = useState('');
 
     const countries = Object.entries(shippingCountries).map(([code,name])=>({id:code, label: name}))
+    const subdivisions = Object.entries(shippingSubdivisions).map(([code,name])=>({id:code, label: name}))
+    const options= shippingOptions.map((sO)=>({id:sO.id, label:`${sO.description} - ${sO.price.formatted_with_symbol}`}))
 
     console.log(countries)
 
@@ -26,10 +28,33 @@ const AddressForm = ({checkoutToken}) => {
         setShippingCountry(Object.keys(countries)[0])
     }
 
+    const fetchShippingDivisions = async (countryCode)=>{
+        const {subdivisions} = await commerce.services.localeListSubdivisions(countryCode);
+        setShippingSubdivisions(subdivisions);
+        setShippingSubdivision(Object.keys(subdivisions)[0]);
+    }
+
+    const fetchShippingOptions = async (checkoutTokenId, country, region=null)=>{
+        const options = await commerce.checkout.getShippingOptions(checkoutTokenId, {country, region})
+
+        setShippingOptions(options);
+        setShippingOption(options[0].id)
+    }
+
     useEffect(()=>{
         fetchShippingCountries(checkoutToken.id)
 
     },[])
+
+    useEffect(()=>{
+        if(shippingCountry) fetchShippingDivisions(shippingCountry)
+
+    },[shippingCountry]);
+
+    useEffect(()=>{
+        if(shippingSubdivision) fetchShippingOptions(checkoutToken.id, shippingCountry,shippingSubdivision)
+ 
+    },[shippingSubdivision])
 
 
     const methods = useForm();
@@ -40,7 +65,7 @@ const AddressForm = ({checkoutToken}) => {
             </Typography>
 
             <FormProvider {...methods}>
-                <form onSubmit = ''>
+                <form onSubmit = {methods.handleSubmit((data)=>{})}>
                  <Grid container spacing={3}>
                     <CustomTextField name='FirstName' label='First Name'/>
                     <CustomTextField name='lastName' label='Last Name'/>
@@ -59,24 +84,36 @@ const AddressForm = ({checkoutToken}) => {
                             
                         </Select>
                     </Grid>
-                    <Grid item xs={12} sm={6}>
+
+                    <Grid item xs={12} sm={6} >
                         <InputLabel> Shipping Subdivision</InputLabel>
-                        <Select fullWidth>
-                            <MenuItem>
-                            Select Me
-                            </MenuItem>
+                        <Select fullWidth value={shippingSubdivision} onChange={(e)=>setShippingSubdivision(e.target.value)}>
+                        {subdivisions.map((subdivision)=>(
+                              <MenuItem key={subdivision.id} value={subdivision.id}>
+                            {subdivision.label}
+                            </MenuItem>  
+                            ))}
                         </Select>
                     </Grid>
                     <Grid item xs={12} sm={6}>
                         <InputLabel> Shipping Options </InputLabel>
-                        <Select fullWidth>
-                            <MenuItem>
-                            Select Me
-                            </MenuItem>
+                        <Select fullWidth value= {shippingOption} onChange={(e)=>setShippingOption(e.target.value)}>
+                        {options.map((option)=>(
+                              <MenuItem key={option.id} value={option.id}>
+                            {option.label}
+                            </MenuItem>  
+                            ))}
                         </Select>
                     </Grid>
                 </Grid>   
                 </form>
+
+                <br/>
+
+                <div style={{display:'flex', justifyContent:'space-between'}}>
+                    <Button component={Link} to="/cart" variant="outlined">Back to Cart</Button>
+                    <Button type= "submit" variant="contained">Next</Button>
+                </div>
                 
             </FormProvider>
         </div>
